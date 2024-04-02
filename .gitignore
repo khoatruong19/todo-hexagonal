@@ -1,0 +1,4 @@
+.env
+*_templ.txt
+tmp
+tailwindcss

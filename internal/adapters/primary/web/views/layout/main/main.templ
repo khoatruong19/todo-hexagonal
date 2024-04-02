@@ -1,0 +1,43 @@
+package layout
+
+import "todo-hexagonal/internal/middleware"
+
+templ header(title string) {
+	<head>
+		<title>{ title }</title>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<script src="static/script/htmx.min.js" nonce={ middleware.GetHtmxNonce(ctx) }></script>
+		<script src="static/script/response-targets.js" nonce={ middleware.GetResponseTargetsNonce(ctx) }></script>
+		<link rel="stylesheet" href="static/css/style.css" nonce={ middleware.GetTwNonce(ctx) }/>
+	</head>
+}
+
+templ footer() {
+	<footer class="bg-blue-600 p-4"></footer>
+}
+
+templ nav(){
+	<nav class="bg-blue-600 p-4 flex space-x-4">
+		<a class="text-gray-200" href="/">Home asds</a>
+
+	// if middleware.GetUser(ctx) != nil {
+	// 	<a class="text-gray-200" href="/logout">Logout</a>
+	// } else {
+	// 	<a class="text-gray-200" href="/register">Register</a>
+	// 	<a class="text-gray-200" href="/login">Login</a>
+	// }
+		<a class="text-yellow-400" href="/about">About what</a>
+	</nav>
+}
+
+templ Layout(contents templ.Component, title string) {
+	@header(title)
+	<body class="flex flex-col h-full">
+	@nav()
+	<main class="flex-1">
+		@contents
+	</main>
+	@footer()
+	</body>
+}
