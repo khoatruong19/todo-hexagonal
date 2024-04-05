@@ -15,6 +15,7 @@ import (
 	"todo-hexagonal/internal/adapters/secondary/repository"
 	"todo-hexagonal/internal/config"
 	"todo-hexagonal/internal/core/domain"
+	"todo-hexagonal/internal/core/services"
 
 	m "todo-hexagonal/internal/middleware"
 
@@ -24,19 +25,26 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	userService *services.UserService
+)
+
 func main() {
 	cfg := config.MustLoadConfig()
 
 	db := connectToDB(cfg)
-
-	db.AutoMigrate(&domain.User{})
 
 	redisCache, err := cache.NewRedisCache(cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword)
 	if err != nil {
 		panic(err)
 	}
 
-	_ = repository.NewDB(db, redisCache)
+	store := repository.NewDB(db, redisCache)
+
+	userService = services.NewUserService(services.NewUserServiceParams{
+		Repo: store,
+		Cfg:  cfg,
+	})
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -79,7 +87,6 @@ func main() {
 }
 
 func initRoutes() *chi.Mux {
-
 	router := chi.NewRouter()
 
 	fileServer := http.FileServer(http.Dir("./static"))
@@ -89,6 +96,12 @@ func initRoutes() *chi.Mux {
 		r.Use(middleware.Logger, m.CSPMiddleware, m.TextHTMLMiddleware)
 
 		r.Get("/", handlers.NewHomeHandler().ServeHTTP)
+
+		r.Get("/login", handlers.NewLoginHandler().ServeHTTP)
+		r.Post("/login", handlers.NewPostLoginHandler().ServeHTTP)
+
+		r.Get("/register", handlers.NewRegisterHandler().ServeHTTP)
+		r.Post("/register", handlers.NewPostRegisterHandler(userService).ServeHTTP)
 	})
 
 	return router
@@ -107,6 +120,11 @@ func connectToDB(cfg *config.Config) *gorm.DB {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: dsn,
 	}), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.AutoMigrate(&domain.User{})
 	if err != nil {
 		panic(err)
 	}

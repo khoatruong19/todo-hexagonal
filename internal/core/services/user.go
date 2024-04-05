@@ -17,19 +17,47 @@ type UserService struct {
 }
 
 type NewUserServiceParams struct {
-	repo ports.UserRepository
-	cfg  *config.Config
+	Repo ports.UserRepository
+	Cfg  *config.Config
 }
 
 func NewUserService(params NewUserServiceParams) *UserService {
 	return &UserService{
-		repo: params.repo,
-		cfg:  params.cfg,
+		repo: params.Repo,
+		cfg:  params.Cfg,
 	}
 }
 
 func (u *UserService) CreateUser(email, username, password string) (*domain.User, error) {
 	return u.repo.CreateUser(email, username, password)
+}
+
+func (u *UserService) RegisterUser(email, username, password, confirmPassword string) (*ports.UserResponse, error) {
+	existingUsername, _ := u.repo.FindUserByUsername(username)
+	if existingUsername != nil {
+		return nil, errors.New("username is existed")
+	}
+
+	existingEmail, _ := u.repo.FindUserByEmail(email)
+	if existingEmail != nil {
+		return nil, errors.New("email is existed")
+	}
+
+	if password != confirmPassword {
+		return nil, errors.New("passwords not matched")
+	}
+
+	createdUser, err := u.CreateUser(email, username, password)
+	if err != nil {
+		return nil, errors.New("error creating user")
+	}
+
+	return &ports.UserResponse{
+		ID:       createdUser.ID.String(),
+		Email:    createdUser.Email,
+		Username: createdUser.Username,
+		Avatar:   createdUser.Avatar,
+	}, nil
 }
 
 func (u *UserService) LoginUser(username, password string) (*ports.LoginUserResponse, error) {
