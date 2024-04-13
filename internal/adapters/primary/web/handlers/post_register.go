@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"todo-hexagonal/internal/adapters/primary/web/httperror"
 	"todo-hexagonal/internal/adapters/primary/web/utils"
-	pages "todo-hexagonal/internal/adapters/primary/web/views/pages/register"
+	"todo-hexagonal/internal/constants"
 	"todo-hexagonal/internal/core/services"
 )
 
@@ -41,18 +40,33 @@ func (h *PostRegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	validationErrors := utils.ValidationInput(data)
 	if validationErrors != nil {
-		fmt.Println(validationErrors)
 		httperror.ValidationErrorResponse(w, validationErrors)
 		return
 	}
 
 	_, err := h.userService.RegisterUser(email, username, password, confirmPassword)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		errMsg := err.Error()
 
-		c := pages.RegisterError(err.Error())
-		utils.RenderComponent(w, r, c)
+		if errMsg == constants.ErrorEmailExisted {
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Email", errMsg))
+			httperror.ValidationErrorResponse(w, &validationErrors)
+			return
+		}
 
+		if errMsg == constants.ErrorUsernameExisted {
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Username", errMsg))
+			httperror.ValidationErrorResponse(w, &validationErrors)
+			return
+		}
+
+		if errMsg == constants.ErrorPasswordNotMatched {
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Password", errMsg), utils.NewValidationError("ConfirmPassword", errMsg))
+			httperror.ValidationErrorResponse(w, &validationErrors)
+			return
+		}
+
+		httperror.ServerErrorResponse(w)
 		return
 	}
 

@@ -20,5 +20,11 @@ func RenderErrorResponse(w http.ResponseWriter) {
 }
 
 func ValidationErrorResponse(w http.ResponseWriter, validationErrors *[]types.ValidationError) {
-	WriteError(w, http.StatusUnprocessableEntity, *validationErrors)
+	WriteError(w, http.StatusBadRequest, *validationErrors)
+}
+
+func ServerErrorResponse(w http.ResponseWriter) {
+	message := "the server encountered a problem and could not process your request"
+
+	WriteError(w, http.StatusInternalServerError, message)
 }

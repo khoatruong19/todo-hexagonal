@@ -7,12 +7,24 @@ templ Login() {
             <form hx-post="/login" hx-trigger="submit" 
 			    class="flex flex-col gap-4 w-[80%]">
                 <h1 class="text-5xl font-semibold mb-2">Sign In</h1>
-                <input id="username" name="username" class="px-4 py-3 border-2 rounded-md border-black" placeholder="Username..." />
-                <input type="password" id="password" name="password" class="px-4 py-3 border-2 rounded-md border-black" placeholder="Password..." />
+                <div>
+                    <input type="text" id="username" name="username" placeholder="Username..." class="input input-bordered w-full" />
+                    <p id="usernameError" class="text-red-500 hidden text-sm"></p>
+                </div>
+                <div>
+                    <input type="password" id="password" name="password" placeholder="Password..." class="input input-bordered w-full" />
+                    <p id="passwordError" class="text-red-500 hidden text-sm"></p>
+                </div>
                 <button type="submit" class="px-4 py-3 rounded-md bg-yellow-400 font-semibold text-xl mt-5 border-4 border-black">Sign in</button>
             </form>
 
             <span class="font-semibold mt-2">Don't have an account? <a class="hover:text-yellow-400" href="/register">Sign up</a></span>
         </div>
     </div>
+
+    <script src="static/script/form-validation.js" />
+    <script>
+        const inputIds = ["username", "password"]
+        formValidationListener(inputIds)
+    </script>
 }

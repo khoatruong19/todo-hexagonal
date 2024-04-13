@@ -70,5 +70,20 @@ func ValidationInput(data interface{}) *[]types.ValidationError {
 
 	}
 
-	return &validationErrors
+	if len(validationErrors) > 0 {
+		return &validationErrors
+	}
+
+	return nil
+}
+
+func NewValidationError(field, message string) types.ValidationError {
+	return types.ValidationError{
+		Field:   field,
+		Message: message,
+	}
+}
+
+func NewValidationErrors(errors ...types.ValidationError) []types.ValidationError {
+	return errors
 }

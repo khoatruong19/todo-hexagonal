@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 	"todo-hexagonal/internal/config"
+	"todo-hexagonal/internal/constants"
 	"todo-hexagonal/internal/core/domain"
 	"todo-hexagonal/internal/core/ports"
 
@@ -33,23 +34,23 @@ func (u *UserService) CreateUser(email, username, password string) (*domain.User
 }
 
 func (u *UserService) RegisterUser(email, username, password, confirmPassword string) (*ports.UserResponse, error) {
-	existingUsername, _ := u.repo.FindUserByUsername(username)
-	if existingUsername != nil {
-		return nil, errors.New("username is existed")
-	}
-
 	existingEmail, _ := u.repo.FindUserByEmail(email)
 	if existingEmail != nil {
-		return nil, errors.New("email is existed")
+		return nil, errors.New(constants.ErrorEmailExisted)
+	}
+
+	existingUsername, _ := u.repo.FindUserByUsername(username)
+	if existingUsername != nil {
+		return nil, errors.New(constants.ErrorUsernameExisted)
 	}
 
 	if password != confirmPassword {
-		return nil, errors.New("passwords not matched")
+		return nil, errors.New(constants.ErrorPasswordNotMatched)
 	}
 
 	createdUser, err := u.CreateUser(email, username, password)
 	if err != nil {
-		return nil, errors.New("error creating user")
+		return nil, errors.New(constants.ErrorUserCreate)
 	}
 
 	return &ports.UserResponse{
@@ -96,7 +97,7 @@ func (u *UserService) LoginUser(username, password string) (*ports.LoginUserResp
 func (u *UserService) verifyPassword(hash, password string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
-		return errors.New("password not matched")
+		return errors.New(constants.ErrorPasswordNotMatched)
 	}
 	return nil
 }
