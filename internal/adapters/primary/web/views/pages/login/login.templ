@@ -9,11 +9,11 @@ templ Login() {
                 <h1 class="text-5xl font-semibold mb-2">Sign In</h1>
                 <div>
                     <input type="text" id="username" name="username" placeholder="Username..." class="input input-bordered w-full" />
-                    <p id="usernameError" class="text-red-500 hidden text-sm"></p>
+                    <p id="usernameError" class="text-red-500 hidden text-sm first-letter:capitalize"></p>
                 </div>
                 <div>
                     <input type="password" id="password" name="password" placeholder="Password..." class="input input-bordered w-full" />
-                    <p id="passwordError" class="text-red-500 hidden text-sm"></p>
+                    <p id="passwordError" class="text-red-500 hidden text-sm first-letter:capitalize"></p>
                 </div>
                 <button type="submit" class="px-4 py-3 rounded-md bg-yellow-400 font-semibold text-xl mt-5 border-4 border-black">Sign in</button>
             </form>
@@ -27,4 +27,7 @@ templ Login() {
         const inputIds = ["username", "password"]
         formValidationListener(inputIds)
     </script>
+  </script>
 }
+
+

@@ -64,7 +64,7 @@ func (u *UserService) RegisterUser(email, username, password, confirmPassword st
 func (u *UserService) LoginUser(username, password string) (*ports.LoginUserResponse, error) {
 	user, err := u.repo.FindUserByUsername(username)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(constants.ErrorInvalidCredentials)
 	}
 
 	err = u.verifyPassword(user.Password, password)
@@ -97,7 +97,7 @@ func (u *UserService) LoginUser(username, password string) (*ports.LoginUserResp
 func (u *UserService) verifyPassword(hash, password string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
-		return errors.New(constants.ErrorPasswordNotMatched)
+		return errors.New(constants.ErrorInvalidCredentials)
 	}
 	return nil
 }

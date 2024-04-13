@@ -4,7 +4,7 @@ templ Register() {
     <div hx-ext="response-targets" class="flex items-center justify-center gap-5 w-screen h-screen">
         <img class="w-[40%] h-auto object-contain rounded-md" alt="" src="static/images/banner.jpeg"/>
         <div class="w-[50%] flex flex-col items-center justify-center">
-            <form hx-post="/register" hx-trigger="submit"
+            <form hx-post="/register" hx-trigger="submit" hx-swap="outerHTML"
 			    class="flex flex-col gap-4 w-[80%]">
                 <h1 class="text-5xl font-semibold mb-2">Sign Up</h1>
                 <div id="register-success" hx-swap="innerHTML"></div>
