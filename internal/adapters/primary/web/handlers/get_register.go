@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	layout "todo-hexagonal/internal/adapters/primary/web/views/layout/auth"
+	"todo-hexagonal/internal/adapters/primary/web/utils"
 	pages "todo-hexagonal/internal/adapters/primary/web/views/pages/register"
 )
 
@@ -13,11 +13,7 @@ func NewRegisterHandler() *RegisterHandler {
 }
 
 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := pages.Register()
-	err := layout.AuthLayout(c, "Register").Render(r.Context(), w)
+	page := pages.Register()
 
-	if err != nil {
-		http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		return
-	}
+	utils.RenderPage(w, r, "auth", page, "Register")
 }

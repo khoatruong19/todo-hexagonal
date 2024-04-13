@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	layout "todo-hexagonal/internal/adapters/primary/web/views/layout/auth"
+	"todo-hexagonal/internal/adapters/primary/web/utils"
 	pages "todo-hexagonal/internal/adapters/primary/web/views/pages/login"
 )
 
@@ -13,11 +13,7 @@ func NewLoginHandler() *LoginHandler {
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := pages.Login()
-	err := layout.AuthLayout(c, "Login").Render(r.Context(), w)
+	page := pages.Login()
 
-	if err != nil {
-		http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		return
-	}
+	utils.RenderPage(w, r, "auth", page, "Login")
 }

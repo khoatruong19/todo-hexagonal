@@ -1,13 +1,23 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"todo-hexagonal/internal/adapters/primary/web/httperror"
+	"todo-hexagonal/internal/adapters/primary/web/utils"
 	pages "todo-hexagonal/internal/adapters/primary/web/views/pages/register"
 	"todo-hexagonal/internal/core/services"
 )
 
 type PostRegisterHandler struct {
 	userService *services.UserService
+}
+
+type PostRegisterInput struct {
+	Email           string `json:"email" validate:"required,min=5,max=20"`
+	Username        string `json:"username" validate:"required"`
+	Password        string `json:"password" validate:"required"`
+	ConfirmPassword string `json:"confirmPassword" validate:"required"`
 }
 
 func NewPostRegisterHandler(UserService *services.UserService) *PostRegisterHandler {
@@ -22,27 +32,30 @@ func (h *PostRegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirmPassword")
 
+	data := PostRegisterInput{
+		Email:           email,
+		Username:        username,
+		Password:        password,
+		ConfirmPassword: confirmPassword,
+	}
+
+	validationErrors := utils.ValidationInput(data)
+	if validationErrors != nil {
+		fmt.Println(validationErrors)
+		httperror.ValidationErrorResponse(w, validationErrors)
+		return
+	}
+
 	_, err := h.userService.RegisterUser(email, username, password, confirmPassword)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
 		c := pages.RegisterError(err.Error())
-		err = c.Render(r.Context(), w)
-		if err != nil {
-			http.Error(w, "error rendering template", http.StatusInternalServerError)
-			return
-		}
+		utils.RenderComponent(w, r, c)
 
 		return
 	}
 
+	w.Header().Set("HX-Redirect", "/login")
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("HX-Redirect", "/register")
-
-	c := pages.RegisterSuccess()
-	err = c.Render(r.Context(), w)
-	if err != nil {
-		http.Error(w, "error rendering template", http.StatusInternalServerError)
-		return
-	}
 }

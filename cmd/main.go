@@ -17,8 +17,6 @@ import (
 	"todo-hexagonal/internal/core/domain"
 	"todo-hexagonal/internal/core/services"
 
-	m "todo-hexagonal/internal/middleware"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"gorm.io/driver/postgres"
@@ -89,16 +87,16 @@ func main() {
 func initRoutes() *chi.Mux {
 	router := chi.NewRouter()
 
-	fileServer := http.FileServer(http.Dir("./static"))
+	fileServer := http.FileServer(http.Dir("./internal/adapters/primary/web/static"))
 	router.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
 	router.Group(func(r chi.Router) {
-		r.Use(middleware.Logger, m.CSPMiddleware, m.TextHTMLMiddleware)
+		r.Use(middleware.Logger)
 
 		r.Get("/", handlers.NewHomeHandler().ServeHTTP)
 
 		r.Get("/login", handlers.NewLoginHandler().ServeHTTP)
-		r.Post("/login", handlers.NewPostLoginHandler().ServeHTTP)
+		r.Post("/login", handlers.NewPostLoginHandler(userService).ServeHTTP)
 
 		r.Get("/register", handlers.NewRegisterHandler().ServeHTTP)
 		r.Post("/register", handlers.NewPostRegisterHandler(userService).ServeHTTP)

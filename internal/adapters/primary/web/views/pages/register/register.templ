@@ -1,34 +1,88 @@
 package pages
 
 templ Register() {
+    <div id="register-response" ></div>
     <div hx-ext="response-targets" class="flex items-center justify-center gap-5 w-screen h-screen">
         <img class="w-[40%] h-auto object-contain rounded-md" alt="" src="static/images/banner.jpeg"/>
         <div class="w-[50%] flex flex-col items-center justify-center">
-            <form hx-post="/register" hx-trigger="submit" hx-target-400="#register-error" hx-target-201="#register-success" hx-swap="innerHTML"
+            <form hx-post="/register" hx-trigger="submit" hx-target-400="#register-response" hx-target-201="#register-response" hx-target-422="#error-validation"
 			    class="flex flex-col gap-4 w-[80%]">
                 <h1 class="text-5xl font-semibold mb-2">Sign Up</h1>
-                <div id="register-error" hx-swap="innerHTML"></div>
                 <div id="register-success" hx-swap="innerHTML"></div>
-                <input type="email" id="email" name="email" class="px-4 py-3 border-2 border-black rounded-md" placeholder="Email..." />
-                <input id="username" name="username" class="px-4 py-3 border-2 border-black rounded-md" placeholder="Username..." />
-                <input type="password" id="password" name="password" class="px-4 py-3 border-2 border-black rounded-md" placeholder="Password..." />
-                <input type="password" id="confirm-password" name="confirmPassword" class="px-4 py-3 border-2 border-black rounded-md" placeholder="Confirm password..." />
-                <button type="submit" class="px-4 py-3 rounded-md bg-yellow-400 font-semibold text-xl mt-5 border-4 border-black">Sign up</button>
+                <div>
+                    <input type="text" id="email" name="email" placeholder="Email..." class="input input-bordered w-full" />
+                    <p id="emailError" class="text-red-500 hidden text-sm"></p>
+                </div>
+                <div>
+                    <input type="text" id="username" name="username" placeholder="Username..." class="input input-bordered w-full" />
+                    <p id="usernameError" class="text-red-500 hidden text-sm"></p>
+                </div>
+                <div>
+                    <input type="password" id="password" name="password" placeholder="Password..." class="input input-bordered w-full" />
+                    <p id="passwordError" class="text-red-500 hidden text-sm"></p>
+                </div>
+                <div>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm password..." class="input input-bordered w-full" />
+                    <p id="confirmPasswordError" class="text-red-500 hidden text-sm"></p>
+                </div>
+                <button type="submit" class="px-4 py-3 rounded-md bg-yellow-400 font-semibold text-xl mt-5 border-2 border-black">Sign up</button>
             </form>
-
             <span class="font-semibold mt-2">Already have an account? <a class="hover:text-yellow-400" href="/login">Sign in</a></span>
+        </div>
+    </div>
+
+    <script>
+        const inputIds = ["email", "username", "password", "confirmPassword"]
+
+        document.addEventListener("htmx:afterRequest", function(event) {
+            let validInputIds = inputIds
+            if (event.detail.xhr.status === 422) { 
+                const errors = JSON.parse(event.detail.xhr.responseText);
+                errors.forEach(error => {
+                    const inputId = error.field.charAt(0).toLowerCase() + error.field.slice(1)
+                    validInputIds = validInputIds.filter(id => id !== inputId)
+                    const field = document.getElementById(inputId);
+                    if(field) field.classList.add("input-error");
+
+                    const fieldErrorMessage = document.getElementById(inputId + "Error");
+                    if(fieldErrorMessage) {
+                        fieldErrorMessage.classList.remove("hidden");
+                        fieldErrorMessage.innerText = error.message
+                    }
+                });
+            }
+        
+            validInputIds.forEach(id => {
+                const field = document.getElementById(id);
+                if(field && field.classList.contains("input-error")) field.classList.remove("input-error");
+
+                const fieldErrorMessage = document.getElementById(id + "Error");
+                if(fieldErrorMessage) fieldErrorMessage.classList.add("hidden");
+            });
+        });
+    </script>
+}
+
+templ RegisterSuccess(msg string) {
+	<div role="alert" class="alert alert-success fixed top-5 mx-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span>{msg}</span>
+    </div>
+}
+
+templ RegisterError(err string) {
+	<div id="registerToast" class="toast toast-top toast-center">
+        <div class="alert alert-error">
+            <svg onclick={closeToast()} xmlns="http://www.w3.org/2000/svg" class="cursor-pointer stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>{err}</span>
         </div>
     </div>
 }
 
-templ RegisterSuccess() {
-	<h1>Registration successful</h1>
-	<p>Go to <a href="login">login</a></p>
-}
+script closeToast() {
+	const toastElement = document.querySelector('#registerToast');
 
-templ RegisterError(err string) {
-	<div class="text-red-400">
-		<h1>Registration failed</h1>
-		<p>{err}</p>
-	</div>
+    if (toastElement) {
+        toastElement.remove();
+    }
 }
