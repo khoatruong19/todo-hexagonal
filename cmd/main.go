@@ -126,6 +126,11 @@ func initRoutes() *chi.Mux {
 		r.Use(middleware.Logger, authMiddleware.ValidateSession)
 
 		r.Get("/", handlers.NewHomeHandler().ServeHTTP)
+
+		r.Post("/logout", handlers.NewPostLogoutHandler(handlers.NewPostLogoutParams{
+			SessionStore:      sessionStore,
+			SessionCookieName: cfg.SessionCookieName,
+		}).ServeHTTP)
 	})
 
 	return router

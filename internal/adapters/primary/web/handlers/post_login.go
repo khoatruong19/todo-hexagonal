@@ -76,9 +76,14 @@ func (h *PostLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	session.Values = map[interface{}]interface{}{
 		constants.AuthKey:     true,
 		constants.UserIdKey:   user.ID,
-		constants.TimezoneKey: time.Now().String(),
+		constants.TimezoneKey: time.Now().Format("2006-01-02 15:04:05"),
 	}
-	session.Save(r, w)
+
+	err = session.Save(r, w)
+	if err != nil {
+		httperror.ServerErrorResponse(w)
+		return
+	}
 
 	w.Header().Set("HX-Redirect", "/")
 	w.WriteHeader(http.StatusOK)

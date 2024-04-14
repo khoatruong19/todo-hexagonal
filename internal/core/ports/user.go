@@ -21,7 +21,7 @@ type UserRepository interface {
 
 type UserService interface {
 	CreateUser(email, username, password string) (*domain.User, error)
-	GetUser(id string) (*domain.User, error)
+	GetUser(id string) (UserResponse, error)
 	DeleteUser(id string) error
 	LoginUser(username, password string) (UserResponse, error)
 }

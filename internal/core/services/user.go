@@ -27,8 +27,18 @@ func (u *UserService) CreateUser(email, username, password string) (*domain.User
 	return u.repo.CreateUser(email, username, password)
 }
 
-func (u *UserService) GetUser(id string) (*domain.User, error) {
-	return u.repo.GetUser(id)
+func (u *UserService) GetUser(id string) (*ports.UserResponse, error) {
+	user, err := u.repo.GetUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ports.UserResponse{
+		ID:       user.ID.String(),
+		Email:    user.Email,
+		Username: user.Username,
+		Avatar:   user.Avatar,
+	}, nil
 }
 
 func (u *UserService) RegisterUser(email, username, password, confirmPassword string) (*ports.UserResponse, error) {
