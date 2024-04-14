@@ -12,7 +12,7 @@ const (
 	email_input_name           string = "email"
 	username_input_name        string = "username"
 	password_input_name        string = "password"
-	confirmpassword_input_name string = "password"
+	confirmpassword_input_name string = "confirmPassword"
 )
 
 type PostRegisterHandler struct {
