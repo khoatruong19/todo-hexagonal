@@ -129,7 +129,12 @@ var UserKey UserContextKey = UserContextKey(constants.UserKey)
 
 func (m *AuthMiddleware) ValidateSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess, _ := m.sessionStore.Get(r, m.sessionCookieName)
+		sess, err := m.sessionStore.Get(r, m.sessionCookieName)
+		if err != nil {
+			httperror.ServerErrorResponse(w)
+			return
+		}
+
 		if auth, ok := sess.Values[constants.AuthKey].(bool); !ok || !auth {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
@@ -147,10 +152,13 @@ func (m *AuthMiddleware) ValidateSession(next http.Handler) http.Handler {
 			return
 		}
 
-		timezone, ok := sess.Values[constants.TimezoneKey].(time.Time)
-		if !ok || time.Until(timezone) < 5*time.Minute {
-			sess.Options.MaxAge = 60 * 60
-			sess.Values[constants.TimezoneKey] = time.Now()
+		timezone, ok := sess.Values[constants.TimezoneKey].(string)
+		if ok {
+			parsedTime, err := time.Parse("2006-01-02 15:04:05", timezone)
+			if err == nil && time.Until(parsedTime) < 5*time.Minute {
+				sess.Options.MaxAge = 60 * 60
+				sess.Values[constants.TimezoneKey] = time.Now()
+			}
 		}
 
 		ctx := context.WithValue(r.Context(), UserKey, user)
