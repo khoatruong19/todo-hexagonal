@@ -11,12 +11,6 @@ type UserResponse struct {
 	Avatar   string `json:"avatar"`
 }
 
-type LoginUserResponse struct {
-	User         UserResponse `json:"user"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token"`
-}
-
 type UserRepository interface {
 	CreateUser(email, username, password string) (*domain.User, error)
 	GetUser(id string) (*domain.User, error)
@@ -29,5 +23,5 @@ type UserService interface {
 	CreateUser(email, username, password string) (*domain.User, error)
 	GetUser(id string) (*domain.User, error)
 	DeleteUser(id string) error
-	LoginUser(username, password string) (LoginUserResponse, error)
+	LoginUser(username, password string) (UserResponse, error)
 }

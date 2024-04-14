@@ -2,14 +2,19 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 	"todo-hexagonal/internal/adapters/primary/web/httperror"
 	"todo-hexagonal/internal/adapters/primary/web/utils"
 	"todo-hexagonal/internal/constants"
 	"todo-hexagonal/internal/core/services"
+
+	"github.com/gorilla/sessions"
 )
 
 type PostLoginHandler struct {
-	userService *services.UserService
+	userService       *services.UserService
+	sessionStore      *sessions.CookieStore
+	sessionCookieName string
 }
 
 type PostLoginInput struct {
@@ -17,15 +22,23 @@ type PostLoginInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func NewPostLoginHandler(UserService *services.UserService) *PostLoginHandler {
+type NewPostLoginParams struct {
+	UserService       *services.UserService
+	SessionStore      *sessions.CookieStore
+	SessionCookieName string
+}
+
+func NewPostLoginHandler(params NewPostLoginParams) *PostLoginHandler {
 	return &PostLoginHandler{
-		userService: UserService,
+		userService:       params.UserService,
+		sessionStore:      params.SessionStore,
+		sessionCookieName: params.SessionCookieName,
 	}
 }
 
 func (h *PostLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := r.FormValue(username_input_name)
+	password := r.FormValue(password_input_name)
 
 	data := PostLoginInput{
 		Username: username,
@@ -38,12 +51,13 @@ func (h *PostLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.userService.LoginUser(username, password)
+	user, err := h.userService.LoginUser(username, password)
 	if err != nil {
 		errMsg := err.Error()
 
 		if errMsg == constants.ErrorInvalidCredentials {
-			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Username", errMsg), utils.NewValidationError("Password", errMsg))
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError(username_input_name, errMsg),
+				utils.NewValidationError(password_input_name, errMsg))
 			httperror.ValidationErrorResponse(w, &validationErrors)
 			return
 		}
@@ -51,6 +65,20 @@ func (h *PostLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		httperror.ServerErrorResponse(w)
 		return
 	}
+
+	session, _ := h.sessionStore.Get(r, h.sessionCookieName)
+	session.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   60 * 60,
+		HttpOnly: true,
+	}
+
+	session.Values = map[interface{}]interface{}{
+		constants.AuthKey:     true,
+		constants.UserIdKey:   user.ID,
+		constants.TimezoneKey: time.Now().String(),
+	}
+	session.Save(r, w)
 
 	w.Header().Set("HX-Redirect", "/")
 	w.WriteHeader(http.StatusOK)

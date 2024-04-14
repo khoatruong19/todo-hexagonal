@@ -4,7 +4,7 @@ templ Login() {
     <div class="flex items-center justify-center gap-5 w-screen h-screen">
         <img class="w-[40%] h-auto object-contain rounded-md" alt="" src="static/images/banner.jpeg"/>
         <div class="w-[50%] flex flex-col items-center justify-center">
-            <form hx-post="/login" hx-trigger="submit" 
+            <form hx-post="/login" hx-trigger="submit"
 			    class="flex flex-col gap-4 w-[80%]">
                 <h1 class="text-5xl font-semibold mb-2">Sign In</h1>
                 <div>
@@ -15,7 +15,7 @@ templ Login() {
                     <input type="password" id="password" name="password" placeholder="Password..." class="input input-bordered w-full" />
                     <p id="passwordError" class="text-red-500 hidden text-sm first-letter:capitalize"></p>
                 </div>
-                <button type="submit" class="px-4 py-3 rounded-md bg-yellow-400 font-semibold text-xl mt-5 border-4 border-black">Sign in</button>
+                <button type="submit" class="px-4 py-3 rounded-md bg-yellow-400 font-semibold text-xl mt-5 border-2 border-black">Sign in</button>
             </form>
 
             <span class="font-semibold mt-2">Don't have an account? <a class="hover:text-yellow-400" href="/register">Sign up</a></span>
@@ -27,7 +27,6 @@ templ Login() {
         const inputIds = ["username", "password"]
         formValidationListener(inputIds)
     </script>
-  </script>
 }
 
 

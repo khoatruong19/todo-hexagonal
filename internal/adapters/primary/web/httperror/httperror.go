@@ -23,6 +23,12 @@ func ValidationErrorResponse(w http.ResponseWriter, validationErrors *[]types.Va
 	WriteError(w, http.StatusBadRequest, *validationErrors)
 }
 
+func UnauthorizedErrorResponse(w http.ResponseWriter) {
+	message := "unauthorized"
+
+	WriteError(w, http.StatusUnauthorized, message)
+}
+
 func ServerErrorResponse(w http.ResponseWriter) {
 	message := "the server encountered a problem and could not process your request"
 

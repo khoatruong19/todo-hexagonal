@@ -8,6 +8,13 @@ import (
 	"todo-hexagonal/internal/core/services"
 )
 
+const (
+	email_input_name           string = "email"
+	username_input_name        string = "username"
+	password_input_name        string = "password"
+	confirmpassword_input_name string = "password"
+)
+
 type PostRegisterHandler struct {
 	userService *services.UserService
 }
@@ -26,10 +33,10 @@ func NewPostRegisterHandler(UserService *services.UserService) *PostRegisterHand
 }
 
 func (h *PostRegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	confirmPassword := r.FormValue("confirmPassword")
+	email := r.FormValue(email_input_name)
+	username := r.FormValue(username_input_name)
+	password := r.FormValue(password_input_name)
+	confirmPassword := r.FormValue(confirmpassword_input_name)
 
 	data := PostRegisterInput{
 		Email:           email,
@@ -49,19 +56,20 @@ func (h *PostRegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		errMsg := err.Error()
 
 		if errMsg == constants.ErrorEmailExisted {
-			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Email", errMsg))
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError(email_input_name, errMsg))
 			httperror.ValidationErrorResponse(w, &validationErrors)
 			return
 		}
 
 		if errMsg == constants.ErrorUsernameExisted {
-			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Username", errMsg))
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError(username_input_name, errMsg))
 			httperror.ValidationErrorResponse(w, &validationErrors)
 			return
 		}
 
 		if errMsg == constants.ErrorPasswordNotMatched {
-			validationErrors := utils.NewValidationErrors(utils.NewValidationError("Password", errMsg), utils.NewValidationError("ConfirmPassword", errMsg))
+			validationErrors := utils.NewValidationErrors(utils.NewValidationError(password_input_name, errMsg),
+				utils.NewValidationError(confirmpassword_input_name, errMsg))
 			httperror.ValidationErrorResponse(w, &validationErrors)
 			return
 		}

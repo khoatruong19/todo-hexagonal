@@ -16,19 +16,24 @@ import (
 	"todo-hexagonal/internal/config"
 	"todo-hexagonal/internal/core/domain"
 	"todo-hexagonal/internal/core/services"
+	m "todo-hexagonal/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/sessions"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var (
-	userService *services.UserService
+	userService    *services.UserService
+	sessionStore   *sessions.CookieStore
+	cfg            *config.Config
+	authMiddleware *m.AuthMiddleware
 )
 
 func main() {
-	cfg := config.MustLoadConfig()
+	cfg = config.MustLoadConfig()
 
 	db := connectToDB(cfg)
 
@@ -37,11 +42,18 @@ func main() {
 		panic(err)
 	}
 
+	sessionStore = sessions.NewCookieStore([]byte(cfg.SessionCookieName))
+
 	store := repository.NewDB(db, redisCache)
 
 	userService = services.NewUserService(services.NewUserServiceParams{
 		Repo: store,
-		Cfg:  cfg,
+	})
+
+	authMiddleware = m.NewAuthMiddleware(m.NewAuthMiddlewareParams{
+		SessionStore:      sessionStore,
+		SessionCookieName: cfg.SessionCookieName,
+		UserService:       userService,
 	})
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -87,19 +99,33 @@ func main() {
 func initRoutes() *chi.Mux {
 	router := chi.NewRouter()
 
-	fileServer := http.FileServer(http.Dir("./internal/adapters/primary/web/static"))
+	fileServer := http.FileServer(http.Dir("./static"))
 	router.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
 	router.Group(func(r chi.Router) {
 		r.Use(middleware.Logger)
 
-		r.Get("/", handlers.NewHomeHandler().ServeHTTP)
+		r.Post("/register", handlers.NewPostRegisterHandler(userService).ServeHTTP)
 
-		r.Get("/login", handlers.NewLoginHandler().ServeHTTP)
-		r.Post("/login", handlers.NewPostLoginHandler(userService).ServeHTTP)
+		r.Post("/login", handlers.NewPostLoginHandler(handlers.NewPostLoginParams{
+			UserService:       userService,
+			SessionStore:      sessionStore,
+			SessionCookieName: cfg.SessionCookieName,
+		}).ServeHTTP)
+	})
+
+	router.Group(func(r chi.Router) {
+		r.Use(middleware.Logger, authMiddleware.RedirectToHomeIfLoggedIn)
 
 		r.Get("/register", handlers.NewRegisterHandler().ServeHTTP)
-		r.Post("/register", handlers.NewPostRegisterHandler(userService).ServeHTTP)
+
+		r.Get("/login", handlers.NewLoginHandler().ServeHTTP)
+	})
+
+	router.Group(func(r chi.Router) {
+		r.Use(middleware.Logger, authMiddleware.ValidateSession)
+
+		r.Get("/", handlers.NewHomeHandler().ServeHTTP)
 	})
 
 	return router

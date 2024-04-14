@@ -7,6 +7,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
+	"todo-hexagonal/internal/adapters/primary/web/httperror"
+	"todo-hexagonal/internal/constants"
+	"todo-hexagonal/internal/core/services"
+
+	"github.com/gorilla/sessions"
 )
 
 type key string
@@ -95,4 +101,89 @@ func GetResponseTargetsNonce(ctx context.Context) string {
 func GetTwNonce(ctx context.Context) string {
 	nonceSet := GetNonces(ctx)
 	return nonceSet.Tw
+}
+
+type AuthMiddleware struct {
+	sessionStore      *sessions.CookieStore
+	sessionCookieName string
+	userService       *services.UserService
+}
+
+type NewAuthMiddlewareParams struct {
+	SessionStore      *sessions.CookieStore
+	SessionCookieName string
+	UserService       *services.UserService
+}
+
+func NewAuthMiddleware(params NewAuthMiddlewareParams) *AuthMiddleware {
+	return &AuthMiddleware{
+		sessionStore:      params.SessionStore,
+		sessionCookieName: params.SessionCookieName,
+		userService:       params.UserService,
+	}
+}
+
+type UserContextKey string
+
+var UserKey UserContextKey = UserContextKey(constants.UserKey)
+
+func (m *AuthMiddleware) ValidateSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess, _ := m.sessionStore.Get(r, m.sessionCookieName)
+		if auth, ok := sess.Values[constants.AuthKey].(bool); !ok || !auth {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		userId, ok := sess.Values[constants.UserIdKey].(string)
+		if !ok {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		user, err := m.userService.GetUser(userId)
+		if err != nil {
+			httperror.ServerErrorResponse(w)
+			return
+		}
+
+		timezone, ok := sess.Values[constants.TimezoneKey].(time.Time)
+		if !ok || time.Until(timezone) < 5*time.Minute {
+			sess.Options.MaxAge = 60 * 60
+			sess.Values[constants.TimezoneKey] = time.Now()
+		}
+
+		ctx := context.WithValue(r.Context(), UserKey, user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *AuthMiddleware) RedirectToHomeIfLoggedIn(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess, _ := m.sessionStore.Get(r, m.sessionCookieName)
+		authorized := true
+
+		if auth, ok := sess.Values[constants.AuthKey].(bool); !ok || !auth {
+			authorized = false
+		}
+
+		userId, ok := sess.Values[constants.UserIdKey].(string)
+		if !ok {
+			authorized = false
+		}
+
+		_, err := m.userService.GetUser(userId)
+		if err != nil {
+			authorized = false
+		}
+
+		urlPath := r.URL.Path
+		if authorized && (urlPath == "/login" || urlPath == "/register") {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
