@@ -27,6 +27,7 @@ import (
 
 var (
 	userService    *services.UserService
+	todoService    *services.TodoService
 	sessionStore   *sessions.CookieStore
 	cfg            *config.Config
 	authMiddleware *m.AuthMiddleware
@@ -47,6 +48,9 @@ func main() {
 	store := repository.NewDB(db, redisCache)
 
 	userService = services.NewUserService(services.NewUserServiceParams{
+		Repo: store,
+	})
+	todoService = services.NewTodoService(services.NewTodoServiceParams{
 		Repo: store,
 	})
 
@@ -107,7 +111,7 @@ func initRoutes() *chi.Mux {
 
 		r.Post("/register", handlers.NewPostRegisterHandler(userService).ServeHTTP)
 
-		r.Post("/login", handlers.NewPostLoginHandler(handlers.NewPostLoginParams{
+		r.Post("/login", handlers.NewPostLoginHandler(handlers.NewPostLoginHandlerParams{
 			UserService:       userService,
 			SessionStore:      sessionStore,
 			SessionCookieName: cfg.SessionCookieName,
@@ -125,11 +129,21 @@ func initRoutes() *chi.Mux {
 	router.Group(func(r chi.Router) {
 		r.Use(middleware.Logger, authMiddleware.ValidateSession)
 
-		r.Get("/", handlers.NewHomeHandler().ServeHTTP)
+		r.Get("/", handlers.NewHomeHandler(handlers.NewHomeHandlerParams{
+			TodoService: todoService,
+		}).ServeHTTP)
 
 		r.Post("/logout", handlers.NewPostLogoutHandler(handlers.NewPostLogoutParams{
 			SessionStore:      sessionStore,
 			SessionCookieName: cfg.SessionCookieName,
+		}).ServeHTTP)
+
+		r.Post("/todos", handlers.NewPostAddTodoHandler(handlers.NewPostAddTodoHandlerParams{
+			TodoService: todoService,
+		}).ServeHTTP)
+
+		r.Delete("/todos/{id}", handlers.NewPostDeleteTodoHandler(handlers.NewPostDeleteTodoHandlerParams{
+			TodoService: todoService,
 		}).ServeHTTP)
 	})
 
@@ -153,7 +167,7 @@ func connectToDB(cfg *config.Config) *gorm.DB {
 		panic(err)
 	}
 
-	err = db.AutoMigrate(&domain.User{})
+	err = db.AutoMigrate(&domain.User{}, &domain.Todo{})
 	if err != nil {
 		panic(err)
 	}

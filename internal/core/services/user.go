@@ -34,7 +34,7 @@ func (u *UserService) GetUser(id string) (*ports.UserResponse, error) {
 	}
 
 	return &ports.UserResponse{
-		ID:       user.ID.String(),
+		ID:       user.ID,
 		Email:    user.Email,
 		Username: user.Username,
 		Avatar:   user.Avatar,
@@ -62,7 +62,7 @@ func (u *UserService) RegisterUser(email, username, password, confirmPassword st
 	}
 
 	return &ports.UserResponse{
-		ID:       createdUser.ID.String(),
+		ID:       createdUser.ID,
 		Email:    createdUser.Email,
 		Username: createdUser.Username,
 		Avatar:   createdUser.Avatar,
@@ -81,7 +81,7 @@ func (u *UserService) LoginUser(username, password string) (*ports.UserResponse,
 	}
 
 	return &ports.UserResponse{
-		ID:       user.ID.String(),
+		ID:       user.ID,
 		Email:    user.Email,
 		Username: user.Username,
 		Avatar:   user.Avatar,

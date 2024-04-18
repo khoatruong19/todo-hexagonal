@@ -2,13 +2,15 @@ package ports
 
 import (
 	"todo-hexagonal/internal/core/domain"
+
+	"github.com/google/uuid"
 )
 
 type UserResponse struct {
-	ID       string `json:"id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Avatar   string `json:"avatar"`
+	ID       uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	Username string    `json:"username"`
+	Avatar   string    `json:"avatar"`
 }
 
 type UserRepository interface {

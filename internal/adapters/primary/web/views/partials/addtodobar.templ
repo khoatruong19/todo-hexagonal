@@ -1,0 +1,19 @@
+package partials
+
+templ AddTodoBar(){
+    <form hx-post="/todos" hx-trigger="submit" class="flex items-center gap-2 w-full">
+        <div class="w-full">
+            <input id="title" name="title" placeholder="Todo..." class="input input-bordered w-full" autofocus/>
+            <p id="titleError" class="text-red-500 hidden text-sm first-letter:capitalize"></p>
+        </div>
+        <button type="submit" class="btn p-0">
+            <kbd class="kbd kbd-lg">Enter</kbd>
+        </button>
+    </form>
+
+    <script src="static/script/form-validation.js" />
+    <script>
+        const inputIds = ["title"]
+        formValidationListener(inputIds)
+    </script>
+}

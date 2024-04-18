@@ -1,0 +1,53 @@
+package partials
+
+import "todo-hexagonal/internal/core/ports"
+import "fmt"
+
+templ TodoList(todos []ports.TodoResponse){
+   <div id="todosTable" class=" mt-4 w-full h-[400px] md:h-[500px] overflow-y-auto">
+        <table class="table table-zebra h-12">
+            <thead id="todosTableHeader" class="sticky top-0  test">
+                <tr>
+                    <th class="w-[80%] ">Todo</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody class="border-collapse w-full">
+                if len(todos) == 0 {
+                     <tr>
+                    <td class="text-sm text-center translate-x-[30px] font-semibold text-black">No todos found!</td>
+                    </tr>
+                } 
+                for _, item := range todos {
+                    <tr>
+                        <td>{item.Title}</td>
+                        <td>
+                            <button class="pl-2" hx-delete={fmt.Sprintf("/todos/%s", item.ID)}>
+                                <img alt="" src="/static/images/delete.png" class="w-6 h-6 object-cover" />
+                            </button>
+                         </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        window.addEventListener("load", () => {
+            const todosTable = document.getElementById("todosTable")
+            todosTable.scrollTop = todosTable.scrollHeight;
+
+            todosTable.addEventListener("scroll", () => {
+                const todosTableHeader = document.getElementById("todosTableHeader")
+                
+                if(todosTable.scrollTop > 0){
+                    todosTableHeader.classList.add("scrolled") 
+                }else{
+                    todosTableHeader.classList.remove("scrolled") 
+                }
+            })
+        })
+
+       
+    </script>
+}

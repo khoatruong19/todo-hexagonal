@@ -6,23 +6,38 @@ import (
 	"todo-hexagonal/internal/adapters/primary/web/utils"
 	pages "todo-hexagonal/internal/adapters/primary/web/views/pages/home"
 	"todo-hexagonal/internal/core/ports"
+	"todo-hexagonal/internal/core/services"
 	"todo-hexagonal/internal/middleware"
 )
 
-type HomeHandler struct{}
+type HomeHandler struct {
+	todoService *services.TodoService
+}
 
-func NewHomeHandler() *HomeHandler {
-	return &HomeHandler{}
+type NewHomeHandlerParams struct {
+	TodoService *services.TodoService
+}
+
+func NewHomeHandler(params NewHomeHandlerParams) *HomeHandler {
+	return &HomeHandler{
+		todoService: params.TodoService,
+	}
 }
 
 func (h *HomeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, ok := r.Context().Value(middleware.UserKey).(*ports.UserResponse)
+	user, ok := r.Context().Value(middleware.UserKey).(*ports.UserResponse)
 	if !ok {
 		httperror.ServerErrorResponse(w)
 		return
 	}
 
-	page := pages.Index()
+	todos, err := h.todoService.GetTodosByUserId(user.ID)
+	if err != nil {
+		httperror.ServerErrorResponse(w)
+		return
+	}
+
+	page := pages.Index(user, *todos)
 
 	utils.RenderPage(w, r, "main", page, "Todoapp")
 }

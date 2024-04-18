@@ -1,13 +1,14 @@
 package pages
 
-templ Index() {
-		<div class="bg-blue-200">
-		Welcome Khoa
-		</div>
-}
+import "todo-hexagonal/internal/adapters/primary/web/views/partials"
+import "todo-hexagonal/internal/core/ports"
 
-templ GuestIndex() {
-	<div>
-	Welcome guest
+templ Index(user *ports.UserResponse, todos []ports.TodoResponse) {
+	<div class="w-full h-full flex mt-12 justify-center">
+		<div class="max-w-sm w-full">
+			@partials.Topbar(user)
+			@partials.AddTodoBar()
+			@partials.TodoList(todos)
+		</div>
 	</div>
 }

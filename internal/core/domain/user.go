@@ -6,4 +6,5 @@ type User struct {
 	Email    string `gorm:"unique;not null" json:"email"`
 	Password string `gorm:"not null" json:"-"`
 	Avatar   string `json:"avatar"`
+	Todos    []Todo
 }

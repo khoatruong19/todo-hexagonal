@@ -22,13 +22,13 @@ type PostLoginInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type NewPostLoginParams struct {
+type NewPostLoginHandlerParams struct {
 	UserService       *services.UserService
 	SessionStore      *sessions.CookieStore
 	SessionCookieName string
 }
 
-func NewPostLoginHandler(params NewPostLoginParams) *PostLoginHandler {
+func NewPostLoginHandler(params NewPostLoginHandlerParams) *PostLoginHandler {
 	return &PostLoginHandler{
 		userService:       params.UserService,
 		sessionStore:      params.SessionStore,
@@ -75,7 +75,7 @@ func (h *PostLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	session.Values = map[interface{}]interface{}{
 		constants.AuthKey:     true,
-		constants.UserIdKey:   user.ID,
+		constants.UserIdKey:   user.ID.String(),
 		constants.TimezoneKey: time.Now().Format("2006-01-02 15:04:05"),
 	}
 

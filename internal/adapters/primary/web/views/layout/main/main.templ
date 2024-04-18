@@ -1,29 +1,27 @@
 package layout
 
+
 templ header(title string) {
 	<head>
 		<title>{ title }</title>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<script src="https://cdn.tailwindcss.com"></script>
 		<link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+		<link href="/static/css/styles.css" rel="stylesheet" type="text/css" />
 	</head>
 }
 
 templ footer() {
-	<footer class="bg-blue-600 p-4"></footer>
+	<footer class="bg-yellow-400 p-4 flex items-center justify-center gap-2">
+		<img alt="" src="/static/images/heart.svg" class="w-8 h-8 object-cover" />
+		<span>Made by <b class="italic">Khoa</b> with love!</span>
+	</footer>
 }
 
 templ nav(){
-	<nav class="bg-blue-600 p-4 flex space-x-4">
-		<a class="text-gray-200" href="/">Home asds</a>
-		<a class="text-gray-200" hx-post="/logout">Logout</a>
-	// if middleware.GetUser(ctx) != nil {
-	// 
-	// } else {
-	// 	<a class="text-gray-200" href="/register">Register</a>
-	// 	<a class="text-gray-200" href="/login">Login</a>
-	// }
-		<a class="text-yellow-400" href="/about">About what</a>
+	<nav class="bg-yellow-400 p-4 flex items-center justify-between ">
+		<a class="text-black text-2xl font-semibold" href="/">Todoapp</a>
 	</nav>
 }
 
@@ -31,12 +29,11 @@ templ Layout(contents templ.Component, title string) {
 	@header(title)
 	<body class="flex flex-col h-full">
 		@nav()
-		<main class="flex-1">
+		<main class="flex-1 px-3 md:px-0">
 			@contents
 		</main>
 		@footer()
 
-		<script src="https://cdn.tailwindcss.com"></script>
 		<script src="static/script/htmx.min.js"></script>
 		<script src="static/script/response-targets.js"></script>
 	</body>

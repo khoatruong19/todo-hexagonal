@@ -14,6 +14,7 @@ import (
 )
 
 func RenderPage(w http.ResponseWriter, r *http.Request, layout string, page templ.Component, pageTitle string) {
+
 	layouts := map[string]func(contents templ.Component, title string) templ.Component{
 		"auth": authLayout.AuthLayout,
 		"main": mainLayout.Layout,

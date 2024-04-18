@@ -38,7 +38,7 @@ func (u *DB) CreateUser(email, username, password string) (*domain.User, error) 
 
 func (u *DB) GetUser(id string) (*domain.User, error) {
 	user := &domain.User{}
-	cachekey := user.ID.String()
+	cachekey := id
 
 	err := u.cache.Get(cachekey, &user)
 	if err == nil {

@@ -1,0 +1,21 @@
+package partials
+
+import "todo-hexagonal/internal/core/ports"
+
+templ Topbar(user *ports.UserResponse) {
+    <div class="flex items-center justify-between w-full py-3">
+        <h3><b class="text-xl">{user.Username}</b>'s todo list</h3>
+        <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button"d>
+                <div class="avatar">
+                    <div class="w-12 rounded-full">
+                        <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                    </div>
+                </div>
+            </div>
+            <ul tabindex="0" class="dropdown-content z-[1] menu py-2 shadow bg-base-100 rounded-box w-24 font-medium border mt-1">
+                <li><a hx-post="/logout" class="text-red-400 ">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+}
